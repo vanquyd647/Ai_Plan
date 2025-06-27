@@ -1,0 +1,97 @@
+{"level":30,"time":1750239369681,"pid":34744,"hostname":"DuongQuy","msg":"Server listening at http://[::1]:3000"}
+{"level":30,"time":1750239369684,"pid":34744,"hostname":"DuongQuy","msg":"Server listening at http://127.0.0.1:3000"}
+{"level":30,"time":1750239372745,"pid":34744,"hostname":"DuongQuy","reqId":"req-1","req":{"method":"GET","url":"/health","hostname":"localhost:3000","remoteAddress":"::1","remotePort":56766},"msg":"incoming request"}
+{"level":30,"time":1750239372746,"pid":34744,"hostname":"DuongQuy","reqId":"req-1","msg":"Health check OK"}
+{"level":30,"time":1750239372747,"pid":34744,"hostname":"DuongQuy","method":"GET","url":"/health","statusCode":200,"msg":"Request completed"}
+{"level":30,"time":1750239372750,"pid":34744,"hostname":"DuongQuy","reqId":"req-1","res":{"statusCode":200},"responseTime":5.034699998795986,"msg":"request completed"}
+{"level":30,"time":1750239682409,"pid":39828,"hostname":"DuongQuy","msg":"Server listening at http://[::1]:3000"}
+{"level":30,"time":1750239682413,"pid":39828,"hostname":"DuongQuy","msg":"Server listening at http://127.0.0.1:3000"}
+{"level":50,"time":1750239697721,"pid":31452,"hostname":"DuongQuy","err":{"type":"Error","message":"listen EADDRINUSE: address already in use ::1:3000","stack":"Error: listen EADDRINUSE: address already in use ::1:3000\n    at Server.setupListenHandle [as _listen2] (node:net:1904:16)\n    at listenInCluster (node:net:1961:12)\n    at GetAddrInfoReqWrap.doListen [as callback] (node:net:2135:7)\n    at GetAddrInfoReqWrap.onlookup [as oncomplete] (node:dns:111:8)","code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::1","port":3000},"msg":"listen EADDRINUSE: address already in use ::1:3000"}
+{"level":50,"time":1750239707047,"pid":37628,"hostname":"DuongQuy","err":{"type":"Error","message":"listen EADDRINUSE: address already in use ::1:3000","stack":"Error: listen EADDRINUSE: address already in use ::1:3000\n    at Server.setupListenHandle [as _listen2] (node:net:1904:16)\n    at listenInCluster (node:net:1961:12)\n    at GetAddrInfoReqWrap.doListen [as callback] (node:net:2135:7)\n    at GetAddrInfoReqWrap.onlookup [as oncomplete] (node:dns:111:8)","code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::1","port":3000},"msg":"listen EADDRINUSE: address already in use ::1:3000"}
+{"level":50,"time":1750239718935,"pid":10108,"hostname":"DuongQuy","err":{"type":"Error","message":"listen EADDRINUSE: address already in use ::1:3000","stack":"Error: listen EADDRINUSE: address already in use ::1:3000\n    at Server.setupListenHandle [as _listen2] (node:net:1904:16)\n    at listenInCluster (node:net:1961:12)\n    at GetAddrInfoReqWrap.doListen [as callback] (node:net:2135:7)\n    at GetAddrInfoReqWrap.onlookup [as oncomplete] (node:dns:111:8)","code":"EADDRINUSE","errno":-4091,"syscall":"listen","address":"::1","port":3000},"msg":"listen EADDRINUSE: address already in use ::1:3000"}
+{"level":30,"time":1750239857796,"pid":39540,"hostname":"DuongQuy","msg":"Server listening at http://[::1]:3000"}
+{"level":30,"time":1750239857799,"pid":39540,"hostname":"DuongQuy","msg":"Server listening at http://127.0.0.1:3000"}
+{"level":30,"time":1750240261883,"pid":38076,"hostname":"DuongQuy","msg":"Server listening at http://[::1]:3000"}
+{"level":30,"time":1750240261885,"pid":38076,"hostname":"DuongQuy","msg":"Server listening at http://127.0.0.1:3000"}
+{"level":30,"time":1750242637147,"pid":36084,"hostname":"DuongQuy","msg":"Server listening at http://[::1]:3000"}
+{"level":30,"time":1750242637155,"pid":36084,"hostname":"DuongQuy","msg":"Server listening at http://127.0.0.1:3000"}
+{"level":30,"time":1750242639739,"pid":36084,"hostname":"DuongQuy","reqId":"req-1","req":{"method":"GET","url":"/api/health","hostname":"localhost:3000","remoteAddress":"::1","remotePort":58384},"msg":"incoming request"}
+{"level":30,"time":1750242639741,"pid":36084,"hostname":"DuongQuy","reqId":"req-1","msg":"Route GET:/api/health not found"}
+{"level":30,"time":1750242639741,"pid":36084,"hostname":"DuongQuy","method":"GET","url":"/api/health","statusCode":404,"msg":"Request completed"}
+{"level":30,"time":1750242639744,"pid":36084,"hostname":"DuongQuy","reqId":"req-1","res":{"statusCode":404},"responseTime":4.417100001126528,"msg":"request completed"}
+{"level":30,"time":1750242640303,"pid":36084,"hostname":"DuongQuy","reqId":"req-2","req":{"method":"GET","url":"/api/health","hostname":"localhost:3000","remoteAddress":"::1","remotePort":58384},"msg":"incoming request"}
+{"level":30,"time":1750242640303,"pid":36084,"hostname":"DuongQuy","reqId":"req-2","msg":"Route GET:/api/health not found"}
+{"level":30,"time":1750242640303,"pid":36084,"hostname":"DuongQuy","method":"GET","url":"/api/health","statusCode":404,"msg":"Request completed"}
+{"level":30,"time":1750242640304,"pid":36084,"hostname":"DuongQuy","reqId":"req-2","res":{"statusCode":404},"responseTime":0.45969999954104424,"msg":"request completed"}
+{"level":30,"time":1750242640497,"pid":36084,"hostname":"DuongQuy","reqId":"req-3","req":{"method":"GET","url":"/api/health","hostname":"localhost:3000","remoteAddress":"::1","remotePort":58384},"msg":"incoming request"}
+{"level":30,"time":1750242640498,"pid":36084,"hostname":"DuongQuy","reqId":"req-3","msg":"Route GET:/api/health not found"}
+{"level":30,"time":1750242640498,"pid":36084,"hostname":"DuongQuy","method":"GET","url":"/api/health","statusCode":404,"msg":"Request completed"}
+{"level":30,"time":1750242640498,"pid":36084,"hostname":"DuongQuy","reqId":"req-3","res":{"statusCode":404},"responseTime":0.6822999976575375,"msg":"request completed"}
+{"level":30,"time":1750242640663,"pid":36084,"hostname":"DuongQuy","reqId":"req-4","req":{"method":"GET","url":"/api/health","hostname":"localhost:3000","remoteAddress":"::1","remotePort":58384},"msg":"incoming request"}
+{"level":30,"time":1750242640663,"pid":36084,"hostname":"DuongQuy","reqId":"req-4","msg":"Route GET:/api/health not found"}
+{"level":30,"time":1750242640663,"pid":36084,"hostname":"DuongQuy","method":"GET","url":"/api/health","statusCode":404,"msg":"Request completed"}
+{"level":30,"time":1750242640663,"pid":36084,"hostname":"DuongQuy","reqId":"req-4","res":{"statusCode":404},"responseTime":0.5890999995172024,"msg":"request completed"}
+{"level":30,"time":1750242640804,"pid":36084,"hostname":"DuongQuy","reqId":"req-5","req":{"method":"GET","url":"/api/health","hostname":"localhost:3000","remoteAddress":"::1","remotePort":58384},"msg":"incoming request"}
+{"level":30,"time":1750242640804,"pid":36084,"hostname":"DuongQuy","reqId":"req-5","msg":"Route GET:/api/health not found"}
+{"level":30,"time":1750242640804,"pid":36084,"hostname":"DuongQuy","method":"GET","url":"/api/health","statusCode":404,"msg":"Request completed"}
+{"level":30,"time":1750242640804,"pid":36084,"hostname":"DuongQuy","reqId":"req-5","res":{"statusCode":404},"responseTime":0.40550000220537186,"msg":"request completed"}
+{"level":30,"time":1750242645777,"pid":36084,"hostname":"DuongQuy","reqId":"req-6","req":{"method":"GET","url":"/health","hostname":"localhost:3000","remoteAddress":"::1","remotePort":58384},"msg":"incoming request"}
+{"level":30,"time":1750242645778,"pid":36084,"hostname":"DuongQuy","reqId":"req-6","msg":"Health check OK"}
+{"level":30,"time":1750242645778,"pid":36084,"hostname":"DuongQuy","method":"GET","url":"/health","statusCode":200,"msg":"Request completed"}
+{"level":30,"time":1750242645780,"pid":36084,"hostname":"DuongQuy","reqId":"req-6","res":{"statusCode":200},"responseTime":2.421399999409914,"msg":"request completed"}
+{"level":30,"time":1750242697867,"pid":36084,"hostname":"DuongQuy","reqId":"req-7","req":{"method":"GET","url":"/api/auth//login","hostname":"localhost:3000","remoteAddress":"::1","remotePort":58384},"msg":"incoming request"}
+{"level":30,"time":1750242697868,"pid":36084,"hostname":"DuongQuy","reqId":"req-7","msg":"Route GET:/api/auth//login not found"}
+{"level":30,"time":1750242697868,"pid":36084,"hostname":"DuongQuy","method":"GET","url":"/api/auth//login","statusCode":404,"msg":"Request completed"}
+{"level":30,"time":1750242697868,"pid":36084,"hostname":"DuongQuy","reqId":"req-7","res":{"statusCode":404},"responseTime":0.7212999984622002,"msg":"request completed"}
+{"level":30,"time":1750242704436,"pid":36084,"hostname":"DuongQuy","reqId":"req-8","req":{"method":"GET","url":"/api/auth/login","hostname":"localhost:3000","remoteAddress":"::1","remotePort":58384},"msg":"incoming request"}
+{"level":30,"time":1750242704436,"pid":36084,"hostname":"DuongQuy","reqId":"req-8","msg":"Route GET:/api/auth/login not found"}
+{"level":30,"time":1750242704436,"pid":36084,"hostname":"DuongQuy","method":"GET","url":"/api/auth/login","statusCode":404,"msg":"Request completed"}
+{"level":30,"time":1750242704437,"pid":36084,"hostname":"DuongQuy","reqId":"req-8","res":{"statusCode":404},"responseTime":0.6578000001609325,"msg":"request completed"}
+{"level":30,"time":1750242740278,"pid":36084,"hostname":"DuongQuy","reqId":"req-9","req":{"method":"POST","url":"/api/auth/login","hostname":"localhost:3000","remoteAddress":"::1","remotePort":58467},"msg":"incoming request"}
+{"level":30,"time":1750242740279,"pid":36084,"hostname":"DuongQuy","reqId":"req-9","msg":"Route POST:/api/auth/login not found"}
+{"level":30,"time":1750242740279,"pid":36084,"hostname":"DuongQuy","method":"POST","url":"/api/auth/login","statusCode":404,"msg":"Request completed"}
+{"level":30,"time":1750242740279,"pid":36084,"hostname":"DuongQuy","reqId":"req-9","res":{"statusCode":404},"responseTime":0.8185000009834766,"msg":"request completed"}
+{"level":30,"time":1750242751930,"pid":36084,"hostname":"DuongQuy","reqId":"req-a","req":{"method":"POST","url":"/auth/login","hostname":"localhost:3000","remoteAddress":"::1","remotePort":58467},"msg":"incoming request"}
+{"level":30,"time":1750242751931,"pid":36084,"hostname":"DuongQuy","reqId":"req-a","msg":"Route POST:/auth/login not found"}
+{"level":30,"time":1750242751931,"pid":36084,"hostname":"DuongQuy","method":"POST","url":"/auth/login","statusCode":404,"msg":"Request completed"}
+{"level":30,"time":1750242751932,"pid":36084,"hostname":"DuongQuy","reqId":"req-a","res":{"statusCode":404},"responseTime":0.9319000020623207,"msg":"request completed"}
+{"level":30,"time":1750242784513,"pid":36084,"hostname":"DuongQuy","reqId":"req-b","req":{"method":"GET","url":"/health","hostname":"localhost:3000","remoteAddress":"::1","remotePort":58495},"msg":"incoming request"}
+{"level":30,"time":1750242784513,"pid":36084,"hostname":"DuongQuy","reqId":"req-b","msg":"Health check OK"}
+{"level":30,"time":1750242784513,"pid":36084,"hostname":"DuongQuy","method":"GET","url":"/health","statusCode":200,"msg":"Request completed"}
+{"level":30,"time":1750242784514,"pid":36084,"hostname":"DuongQuy","reqId":"req-b","res":{"statusCode":200},"responseTime":1.1348000019788742,"msg":"request completed"}
+{"level":30,"time":1750242793325,"pid":36084,"hostname":"DuongQuy","reqId":"req-c","req":{"method":"GET","url":"/auth/login","hostname":"localhost:3000","remoteAddress":"::1","remotePort":58495},"msg":"incoming request"}
+{"level":30,"time":1750242793325,"pid":36084,"hostname":"DuongQuy","reqId":"req-c","msg":"Route GET:/auth/login not found"}
+{"level":30,"time":1750242793325,"pid":36084,"hostname":"DuongQuy","method":"GET","url":"/auth/login","statusCode":404,"msg":"Request completed"}
+{"level":30,"time":1750242793326,"pid":36084,"hostname":"DuongQuy","reqId":"req-c","res":{"statusCode":404},"responseTime":0.7336000017821789,"msg":"request completed"}
+{"level":30,"time":1750242799674,"pid":36084,"hostname":"DuongQuy","reqId":"req-d","req":{"method":"POST","url":"/auth/login","hostname":"localhost:3000","remoteAddress":"::1","remotePort":58467},"msg":"incoming request"}
+{"level":30,"time":1750242799674,"pid":36084,"hostname":"DuongQuy","reqId":"req-d","msg":"Route POST:/auth/login not found"}
+{"level":30,"time":1750242799674,"pid":36084,"hostname":"DuongQuy","method":"POST","url":"/auth/login","statusCode":404,"msg":"Request completed"}
+{"level":30,"time":1750242799675,"pid":36084,"hostname":"DuongQuy","reqId":"req-d","res":{"statusCode":404},"responseTime":0.6791999973356724,"msg":"request completed"}
+{"level":30,"time":1750242821571,"pid":36084,"hostname":"DuongQuy","reqId":"req-e","req":{"method":"GET","url":"/health","hostname":"localhost:3000","remoteAddress":"::1","remotePort":58495},"msg":"incoming request"}
+{"level":30,"time":1750242821571,"pid":36084,"hostname":"DuongQuy","reqId":"req-e","msg":"Health check OK"}
+{"level":30,"time":1750242821571,"pid":36084,"hostname":"DuongQuy","method":"GET","url":"/health","statusCode":200,"msg":"Request completed"}
+{"level":30,"time":1750242821572,"pid":36084,"hostname":"DuongQuy","reqId":"req-e","res":{"statusCode":200},"responseTime":0.8782999999821186,"msg":"request completed"}
+{"level":30,"time":1750242930721,"pid":36084,"hostname":"DuongQuy","reqId":"req-f","req":{"method":"GET","url":"/api/health","hostname":"localhost:3000","remoteAddress":"::1","remotePort":58522},"msg":"incoming request"}
+{"level":30,"time":1750242930721,"pid":36084,"hostname":"DuongQuy","reqId":"req-f","msg":"Route GET:/api/health not found"}
+{"level":30,"time":1750242930721,"pid":36084,"hostname":"DuongQuy","method":"GET","url":"/api/health","statusCode":404,"msg":"Request completed"}
+{"level":30,"time":1750242930722,"pid":36084,"hostname":"DuongQuy","reqId":"req-f","res":{"statusCode":404},"responseTime":0.5588000006973743,"msg":"request completed"}
+{"level":30,"time":1750242999337,"pid":36084,"hostname":"DuongQuy","reqId":"req-g","req":{"method":"GET","url":"/api/health","hostname":"localhost:3000","remoteAddress":"::1","remotePort":58547},"msg":"incoming request"}
+{"level":30,"time":1750242999338,"pid":36084,"hostname":"DuongQuy","reqId":"req-g","msg":"Route GET:/api/health not found"}
+{"level":30,"time":1750242999338,"pid":36084,"hostname":"DuongQuy","method":"GET","url":"/api/health","statusCode":404,"msg":"Request completed"}
+{"level":30,"time":1750242999338,"pid":36084,"hostname":"DuongQuy","reqId":"req-g","res":{"statusCode":404},"responseTime":0.4065000005066395,"msg":"request completed"}
+{"level":30,"time":1750242999858,"pid":36084,"hostname":"DuongQuy","reqId":"req-h","req":{"method":"GET","url":"/api/health","hostname":"localhost:3000","remoteAddress":"::1","remotePort":58547},"msg":"incoming request"}
+{"level":30,"time":1750242999858,"pid":36084,"hostname":"DuongQuy","reqId":"req-h","msg":"Route GET:/api/health not found"}
+{"level":30,"time":1750242999858,"pid":36084,"hostname":"DuongQuy","method":"GET","url":"/api/health","statusCode":404,"msg":"Request completed"}
+{"level":30,"time":1750242999858,"pid":36084,"hostname":"DuongQuy","reqId":"req-h","res":{"statusCode":404},"responseTime":0.5423000007867813,"msg":"request completed"}
+{"level":30,"time":1750243000010,"pid":36084,"hostname":"DuongQuy","reqId":"req-i","req":{"method":"GET","url":"/api/health","hostname":"localhost:3000","remoteAddress":"::1","remotePort":58547},"msg":"incoming request"}
+{"level":30,"time":1750243000010,"pid":36084,"hostname":"DuongQuy","reqId":"req-i","msg":"Route GET:/api/health not found"}
+{"level":30,"time":1750243000010,"pid":36084,"hostname":"DuongQuy","method":"GET","url":"/api/health","statusCode":404,"msg":"Request completed"}
+{"level":30,"time":1750243000011,"pid":36084,"hostname":"DuongQuy","reqId":"req-i","res":{"statusCode":404},"responseTime":0.3740000016987324,"msg":"request completed"}
+{"level":30,"time":1750243000160,"pid":36084,"hostname":"DuongQuy","reqId":"req-j","req":{"method":"GET","url":"/api/health","hostname":"localhost:3000","remoteAddress":"::1","remotePort":58547},"msg":"incoming request"}
+{"level":30,"time":1750243000160,"pid":36084,"hostname":"DuongQuy","reqId":"req-j","msg":"Route GET:/api/health not found"}
+{"level":30,"time":1750243000160,"pid":36084,"hostname":"DuongQuy","method":"GET","url":"/api/health","statusCode":404,"msg":"Request completed"}
+{"level":30,"time":1750243000161,"pid":36084,"hostname":"DuongQuy","reqId":"req-j","res":{"statusCode":404},"responseTime":0.4837999977171421,"msg":"request completed"}
+{"level":30,"time":1750243000361,"pid":36084,"hostname":"DuongQuy","reqId":"req-k","req":{"method":"GET","url":"/api/health","hostname":"localhost:3000","remoteAddress":"::1","remotePort":58547},"msg":"incoming request"}
+{"level":30,"time":1750243000361,"pid":36084,"hostname":"DuongQuy","reqId":"req-k","msg":"Route GET:/api/health not found"}
+{"level":30,"time":1750243000361,"pid":36084,"hostname":"DuongQuy","method":"GET","url":"/api/health","statusCode":404,"msg":"Request completed"}
+{"level":30,"time":1750243000361,"pid":36084,"hostname":"DuongQuy","reqId":"req-k","res":{"statusCode":404},"responseTime":0.42260000109672546,"msg":"request completed"}
