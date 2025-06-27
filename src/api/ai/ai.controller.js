@@ -1,8 +1,7 @@
 const AIService = require('../ai/ai.service');
-const PlanService = require('../plan/plan.service');
 const AIPrompts = require('../ai/prompts');
 
-exports.generateAndCreatePlan = async (req, reply) => {
+exports.generatePlan = async (req, reply) => {
     try {
         const { input } = req.body;
 
@@ -82,14 +81,15 @@ exports.generateAndCreatePlan = async (req, reply) => {
             });
         }
 
-        // Create plan
-        const createdPlan = await PlanService.createPlan(planData);
-        console.log('✅ Created Plan:', createdPlan);
-
+        // ✅ CHỈ TRẢ VỀ PLAN DATA, KHÔNG LÀM GÌ KHÁC
         return reply.code(200).send({
             success: true,
-            rawResponse: aiResponse,
-            data: createdPlan,
+            message: 'Plan generated successfully',
+            data: planData,
+            metadata: {
+                generatedAt: new Date().toISOString(),
+                originalInput: input
+            }
         });
 
     } catch (error) {

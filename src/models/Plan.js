@@ -35,6 +35,20 @@ const PlanSchema = new mongoose.Schema({
             required: true
         }
     }],
+    // Thêm metadata cho AI generated plans
+    source: {
+        type: String,
+        enum: ['manual', 'ai_generated'],
+        default: 'manual'
+    },
+    originalInput: {
+        type: String,
+        required: false
+    },
+    generatedAt: {
+        type: String,
+        required: false
+    },
     createdAt: {
         type: Date,
         default: Date.now
