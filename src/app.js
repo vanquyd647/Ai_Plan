@@ -124,6 +124,6 @@ app.post('/api/gemini', {
 });
 
 // Routes
-app.register(require('./api/auth/auth.routes'), { prefix: '/api/auth' });
+app.register(require('./api/index.routes'), { prefix: '/api' }); 
 
 module.exports = app;

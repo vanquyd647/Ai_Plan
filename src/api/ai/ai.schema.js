@@ -20,7 +20,7 @@ exports.generateContent = {
             properties: {
                 success: { type: 'boolean' },
                 message: { type: 'string' },
-                rawResponse: { type: 'string' }, // Thêm trường rawResponse
+                rawResponse: { type: 'string' },
             },
         },
     }
