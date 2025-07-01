@@ -56,6 +56,7 @@ app.register(require('./plugins/redis.plugin'));
 app.register(require('./plugins/websocket.plugin'));
 app.register(require('./plugins/logger.plugin'));
 
+
 // Security middleware
 app.addHook('onRequest', async (request, reply) => {
     // Remove sensitive headers

@@ -6,7 +6,7 @@ const { authenticate } = require('../../middleware/auth.middleware');
 async function authRoutes(fastify, options) {
     // Rate limiting configurations
     const loginRateLimit = {
-        max: 5, // 5 attempts
+        max: 5,
         timeWindow: '15 minutes',
         keyGenerator: (req) => `login_${req.ip}_${req.body?.email || 'unknown'}`,
         errorResponseBuilder: (req, context) => {
@@ -19,7 +19,7 @@ async function authRoutes(fastify, options) {
     };
 
     const registerRateLimit = {
-        max: 3, // 3 registrations
+        max: 3,
         timeWindow: '1 hour',
         keyGenerator: (req) => `register_${req.ip}`,
         errorResponseBuilder: (req, context) => {
@@ -32,7 +32,7 @@ async function authRoutes(fastify, options) {
     };
 
     const refreshRateLimit = {
-        max: 10, // 10 refresh attempts
+        max: 10,
         timeWindow: '15 minutes',
         keyGenerator: (req) => `refresh_${req.ip}`,
         errorResponseBuilder: (req, context) => {
@@ -79,6 +79,35 @@ async function authRoutes(fastify, options) {
             timestamp: new Date().toISOString()
         };
     });
+
+    // ✅ Debug route
+    fastify.get('/debug/routes', async (req, reply) => {
+        return { 
+            message: 'Auth routes loaded successfully',
+            availableRoutes: [
+                'POST /api/auth/login',
+                'POST /api/auth/register', 
+                'POST /api/auth/refresh-token',
+                'POST /api/auth/logout',
+                'POST /api/auth/logout-all',
+                'GET /api/auth/health',
+                'GET /api/auth/google/config',
+                'GET /api/auth/google',
+                'GET /api/auth/google/callback'
+            ]
+        };
+    });
+
+    // ✅ Đăng ký Google routes
+    try {
+        await fastify.register(require('./google.routes'), { prefix: '/google' });
+        fastify.log.info('Google routes registered successfully');
+    } catch (error) {
+        fastify.log.error('Error registering Google routes:', error);
+        // Không throw error để không crash toàn bộ app
+        fastify.log.warn('Continuing without Google authentication');
+    }
 }
 
+// ✅ QUAN TRỌNG: Export function
 module.exports = authRoutes;
