@@ -18,10 +18,22 @@ const UserSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: function () {
-            return this.authProvider === 'local';
+        required: function() {
+            // Chỉ yêu cầu password nếu không phải Google user
+            return !this.googleId && !this.provider;
         },
-        select: false
+        minlength: [6, 'Mật khẩu phải có ít nhất 6 ký tự'],
+        validate: {
+            validator: function(password) {
+                // Nếu có googleId hoặc provider, không cần validate password
+                if (this.googleId || this.provider === 'google') {
+                    return true;
+                }
+                // Nếu là user thường, validate password
+                return password && password.length >= 6;
+            },
+            message: 'Mật khẩu phải có ít nhất 6 ký tự'
+        }
     },
     name: {
         type: String,
