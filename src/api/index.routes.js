@@ -19,6 +19,8 @@ async function routes(fastify, opts) {
     // Đăng ký route user với prefix /users
     fastify.register(require('./user/user.routes'), { prefix: '/users' });
     
+    // Đăng ký route Otp với prefix /otp
+    fastify.register(require('./otp/otp.routes'), { prefix: '/otp' });
 }
 
 module.exports = routes;
