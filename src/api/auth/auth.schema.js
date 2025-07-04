@@ -25,17 +25,17 @@ exports.login = {
                 message: { type: 'string' },
                 accessToken: { type: 'string' },
                 expiresIn: { type: 'string' },
-                user: {
-                    type: 'object',
-                    properties: {
-                        id: { type: 'string' },
-                        email: { type: 'string' },
-                        name: { type: 'string' },
-                        role: { type: 'string' },
-                        isVerified: { type: 'boolean' },
-                        lastLogin: { type: 'string', format: 'date-time' }
-                    }
-                }
+                // user: {
+                //     type: 'object',
+                //     properties: {
+                //         id: { type: 'string' },
+                //         email: { type: 'string' },
+                //         name: { type: 'string' },
+                //         role: { type: 'string' },
+                //         isVerified: { type: 'boolean' },
+                //         lastLogin: { type: 'string', format: 'date-time' }
+                //     }
+                // }
             }
         },
         400: {

@@ -2,7 +2,7 @@ const UserService = require('./user.service');
 
 exports.getUserProfile = async (req, reply) => {
     try {
-        const userId = req.user.id; // Lấy user từ middleware xác thực
+        const userId = req.user.userId; // Lấy user từ middleware xác thực
         const user = await UserService.getUserById(userId);
 
         return reply.code(200).send({
