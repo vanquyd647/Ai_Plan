@@ -4,13 +4,34 @@ const PlanSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        maxlength: 200
     },
-    objective: {
+    description: {
         type: String,
         required: true,
         trim: true
     },
+    category: {
+        type: String,
+        default: 'General'
+    },
+    status: {
+        type: String,
+        enum: ['draft', 'active', 'completed', 'archived'],
+        default: 'draft'
+    },
+    priority: {
+        type: String,
+        enum: ['low', 'medium', 'high'],
+        default: 'medium'
+    },
+    tags: [{
+        type: String,
+        trim: true
+    }],
+    
+    // ✅ Steps structure for AI plans
     steps: [{
         description: {
             type: String,
@@ -25,6 +46,8 @@ const PlanSchema = new mongoose.Schema({
             required: true
         }
     }],
+    
+    // ✅ Risks structure for AI plans
     risks: [{
         risk: {
             type: String,
@@ -35,28 +58,59 @@ const PlanSchema = new mongoose.Schema({
             required: true
         }
     }],
-    // Thêm metadata cho AI generated plans
-    source: {
+    
+    // ✅ Keep tasks for manual plans (optional)
+    tasks: [{
+        title: String,
+        description: String,
+        status: {
+            type: String,
+            enum: ['todo', 'in_progress', 'completed'],
+            default: 'todo'
+        },
+        priority: {
+            type: String,
+            enum: ['low', 'medium', 'high'],
+            default: 'medium'
+        },
+        dueDate: Date,
+        estimatedHours: Number,
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
+    }],
+    
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    createdBy: {
         type: String,
-        enum: ['manual', 'ai_generated'],
-        default: 'manual'
+        enum: ['user', 'ai'],
+        default: 'user'
     },
-    originalInput: {
-        type: String,
-        required: false
+    
+    // ✅ AI metadata
+    aiMetadata: {
+        prompt: String,
+        model: String,
+        generatedAt: Date,
+        confidence: Number,
+        originalData: mongoose.Schema.Types.Mixed
     },
-    generatedAt: {
-        type: String,
-        required: false
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
-    updatedAt: {
-        type: Date,
-        default: Date.now
-    }
+    
+    startDate: Date,
+    endDate: Date,
+    budget: Number
+}, {
+    timestamps: true
 });
+
+// Indexes
+PlanSchema.index({ userId: 1, createdAt: -1 });
+PlanSchema.index({ userId: 1, status: 1 });
+PlanSchema.index({ userId: 1, category: 1 });
 
 module.exports = mongoose.model('Plan', PlanSchema);
