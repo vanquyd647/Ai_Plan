@@ -100,12 +100,12 @@ exports.saveAIGeneratedPlan = async (req, reply) => {
     try {
         const userId = req.user.userId;
         const requestData = req.body;
-        
+
         console.log('🤖 Raw AI plan data received:', JSON.stringify(requestData, null, 2));
 
         // ✅ Extract plan data from the structure
         let planInfo = {};
-        
+
         if (requestData.planData) {
             planInfo = requestData.planData;
         } else {
@@ -116,42 +116,42 @@ exports.saveAIGeneratedPlan = async (req, reply) => {
         const planData = {
             userId,
             createdBy: 'ai',
-            
+
             // Basic fields
-            title: planInfo.title || 
-                   requestData.title || 
-                   'Kế hoạch từ AI',
-                   
-            description: planInfo.objective || 
-                        planInfo.description || 
-                        requestData.objective ||
-                        requestData.description ||
-                        'Kế hoạch được tạo bởi AI',
-                        
-            category: planInfo.category || 
-                     requestData.category || 
-                     'Du lịch',
-                     
+            title: planInfo.title ||
+                requestData.title ||
+                'Kế hoạch từ AI',
+
+            description: planInfo.objective ||
+                planInfo.description ||
+                requestData.objective ||
+                requestData.description ||
+                'Kế hoạch được tạo bởi AI',
+
+            category: planInfo.category ||
+                requestData.category ||
+                'Du lịch',
+
             status: requestData.status || 'draft',
             priority: requestData.priority || 'medium',
             tags: planInfo.tags || requestData.tags || ['AI', 'Generated'],
 
             // ✅ Process steps directly from AI data
             steps: [],
-            
+
             // ✅ Process risks directly from AI data
             risks: [],
-            
+
             // Store AI metadata
             aiMetadata: {
-                prompt: requestData.metadata?.originalInput || 
-                       requestData.originalInput ||
-                       'Unknown prompt',
-                       
-                model: requestData.metadata?.model || 
-                      requestData.model || 
-                      'gpt-3.5-turbo',
-                      
+                prompt: requestData.metadata?.originalInput ||
+                    requestData.originalInput ||
+                    'Unknown prompt',
+
+                model: requestData.metadata?.model ||
+                    requestData.model ||
+                    'gpt-3.5-turbo',
+
                 generatedAt: new Date(),
                 confidence: requestData.confidence || 0.8,
                 originalData: requestData
@@ -163,28 +163,28 @@ exports.saveAIGeneratedPlan = async (req, reply) => {
             planData.steps = planInfo.steps.map((step, index) => {
                 // Handle different step structures from AI
                 let description, timeline, resources;
-                
+
                 if (typeof step === 'object') {
-                    description = step.description || 
-                                 step.title || 
-                                 step.name ||
-                                 step.step ||
-                                 step.activity ||
-                                 `Bước ${index + 1}`;
-                                 
-                    timeline = step.timeline || 
-                              step.time || 
-                              step.duration ||
-                              step.when ||
-                              step.schedule ||
-                              'Chưa xác định';
-                              
-                    resources = step.resources || 
-                               step.resource ||
-                               step.requirements ||
-                               step.needs ||
-                               step.materials ||
-                               'Chưa xác định';
+                    description = step.description ||
+                        step.title ||
+                        step.name ||
+                        step.step ||
+                        step.activity ||
+                        `Bước ${index + 1}`;
+
+                    timeline = step.timeline ||
+                        step.time ||
+                        step.duration ||
+                        step.when ||
+                        step.schedule ||
+                        'Chưa xác định';
+
+                    resources = step.resources ||
+                        step.resource ||
+                        step.requirements ||
+                        step.needs ||
+                        step.materials ||
+                        'Chưa xác định';
                 } else {
                     // If step is just a string
                     description = step.toString();
@@ -204,20 +204,20 @@ exports.saveAIGeneratedPlan = async (req, reply) => {
         if (planInfo.risks && Array.isArray(planInfo.risks)) {
             planData.risks = planInfo.risks.map((riskItem, index) => {
                 let risk, mitigation;
-                
+
                 if (typeof riskItem === 'object') {
-                    risk = riskItem.risk || 
-                          riskItem.title || 
-                          riskItem.name ||
-                          riskItem.description ||
-                          `Rủi ro ${index + 1}`;
-                          
-                    mitigation = riskItem.mitigation || 
-                                riskItem.solution ||
-                                riskItem.prevention ||
-                                riskItem.handling ||
-                                riskItem.response ||
-                                'Cần xây dựng biện pháp phòng ngừa';
+                    risk = riskItem.risk ||
+                        riskItem.title ||
+                        riskItem.name ||
+                        riskItem.description ||
+                        `Rủi ro ${index + 1}`;
+
+                    mitigation = riskItem.mitigation ||
+                        riskItem.solution ||
+                        riskItem.prevention ||
+                        riskItem.handling ||
+                        riskItem.response ||
+                        'Cần xây dựng biện pháp phòng ngừa';
                 } else {
                     // If risk is just a string
                     risk = riskItem.toString();
@@ -304,7 +304,7 @@ exports.saveAIGeneratedPlan = async (req, reply) => {
         });
 
         const savedPlan = await PlanService.createPlan(planData);
-        
+
         console.log('✅ AI plan saved successfully:', savedPlan.id);
 
         return reply.code(201).send({
@@ -325,7 +325,7 @@ exports.saveAIGeneratedPlan = async (req, reply) => {
 
     } catch (error) {
         console.error('❌ Save AI plan error:', error);
-        
+
         return reply.code(500).send({
             success: false,
             message: 'Lỗi khi lưu kế hoạch AI: ' + error.message,
@@ -503,6 +503,308 @@ exports.exportPlan = async (req, reply) => {
         return reply.code(500).send({
             success: false,
             message: error.message || 'Lỗi server khi xuất kế hoạch'
+        });
+    }
+};
+
+// ✅ Cập nhật getPlans để bao gồm group plans
+exports.getPlansIncludingGroups = async (req, reply) => {
+    try {
+        const userId = req.user.userId;
+        const {
+            page = 1,
+            limit = 10,
+            search,
+            category,
+            status,
+            includeGroups = 'true',
+            sortBy = 'createdAt',
+            sortOrder = 'desc'
+        } = req.query;
+
+        const plans = await PlanService.getUserPlansIncludingGroups(userId, {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            search,
+            category,
+            status,
+            includeGroups: includeGroups === 'true',
+            sortBy,
+            sortOrder
+        });
+
+        return reply.code(200).send({
+            success: true,
+            data: plans.plans,
+            pagination: plans.pagination,
+            message: 'Lấy danh sách kế hoạch thành công'
+        });
+    } catch (error) {
+        console.error('Get plans including groups error:', error);
+        return reply.code(500).send({
+            success: false,
+            message: error.message || 'Lỗi khi lấy danh sách kế hoạch'
+        });
+    }
+};
+
+// ✅ Thêm task vào plan
+exports.addTaskToPlan = async (req, reply) => {
+    try {
+        const userId = req.user.userId;
+        const { planId } = req.params;
+        const taskData = req.body;
+
+        const plan = await PlanService.getPlanById(planId);
+        if (!plan) {
+            return reply.code(404).send({
+                success: false,
+                message: 'Kế hoạch không tồn tại'
+            });
+        }
+
+        // Check permission
+        const canEdit = plan.userId.toString() === userId.toString() ||
+            plan.collaborators?.some(c =>
+                c.userId.toString() === userId.toString() &&
+                c.permissions.canEdit
+            );
+
+        if (!canEdit) {
+            return reply.code(403).send({
+                success: false,
+                message: 'Bạn không có quyền thêm nhiệm vụ vào kế hoạch này'
+            });
+        }
+
+        const newTask = {
+            ...taskData,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        };
+
+        plan.tasks.push(newTask);
+        await plan.save();
+
+        return reply.code(201).send({
+            success: true,
+            data: plan,
+            message: 'Thêm nhiệm vụ thành công'
+        });
+
+    } catch (error) {
+        console.error('Add task to plan error:', error);
+        return reply.code(500).send({
+            success: false,
+            message: error.message || 'Lỗi khi thêm nhiệm vụ'
+        });
+    }
+};
+
+// ✅ Cập nhật task trong plan
+exports.updateTaskInPlan = async (req, reply) => {
+    try {
+        const userId = req.user.userId;
+        const { planId, taskId } = req.params;
+        const updateData = req.body;
+
+        const plan = await PlanService.getPlanById(planId);
+        if (!plan) {
+            return reply.code(404).send({
+                success: false,
+                message: 'Kế hoạch không tồn tại'
+            });
+        }
+
+        const task = plan.tasks.id(taskId);
+        if (!task) {
+            return reply.code(404).send({
+                success: false,
+                message: 'Nhiệm vụ không tồn tại'
+            });
+        }
+
+        // Check permission
+        const canEdit = plan.userId.toString() === userId.toString() ||
+            plan.collaborators?.some(c =>
+                c.userId.toString() === userId.toString() &&
+                c.permissions.canEdit
+            ) ||
+            task.assignedTo?.some(a =>
+                a.userId.toString() === userId.toString()
+            );
+
+        if (!canEdit) {
+            return reply.code(403).send({
+                success: false,
+                message: 'Bạn không có quyền cập nhật nhiệm vụ này'
+            });
+        }
+
+        // Update task
+        Object.assign(task, updateData);
+        task.updatedAt = new Date();
+
+        await plan.save();
+
+        return reply.code(200).send({
+            success: true,
+            data: plan,
+            message: 'Cập nhật nhiệm vụ thành công'
+        });
+
+    } catch (error) {
+        console.error('Update task in plan error:', error);
+        return reply.code(500).send({
+            success: false,
+            message: error.message || 'Lỗi khi cập nhật nhiệm vụ'
+        });
+    }
+};
+
+// ✅ Xóa task khỏi plan
+exports.deleteTaskFromPlan = async (req, reply) => {
+    try {
+        const userId = req.user.userId;
+        const { planId, taskId } = req.params;
+
+        const plan = await PlanService.getPlanById(planId);
+        if (!plan) {
+            return reply.code(404).send({
+                success: false,
+                message: 'Kế hoạch không tồn tại'
+            });
+        }
+
+        const task = plan.tasks.id(taskId);
+        if (!task) {
+            return reply.code(404).send({
+                success: false,
+                message: 'Nhiệm vụ không tồn tại'
+            });
+        }
+
+        // Check permission
+        const canDelete = plan.userId.toString() === userId.toString() ||
+            plan.collaborators?.some(c =>
+                c.userId.toString() === userId.toString() &&
+                c.permissions.canDeleteTasks
+            );
+
+        if (!canDelete) {
+            return reply.code(403).send({
+                success: false,
+                message: 'Bạn không có quyền xóa nhiệm vụ này'
+            });
+        }
+
+        // Remove task
+        plan.tasks.pull(taskId);
+        await plan.save();
+
+        return reply.code(200).send({
+            success: true,
+            data: plan,
+            message: 'Xóa nhiệm vụ thành công'
+        });
+
+    } catch (error) {
+        console.error('Delete task from plan error:', error);
+        return reply.code(500).send({
+            success: false,
+            message: error.message || 'Lỗi khi xóa nhiệm vụ'
+        });
+    }
+};
+
+// ✅ Lấy dashboard thống kê cho user
+exports.getUserDashboard = async (req, reply) => {
+    try {
+        const userId = req.user.userId;
+
+        // Get user's plans statistics
+        const personalPlans = await PlanService.getUserPlans(userId, { limit: 1000 });
+        const groupPlans = await PlanService.getUserPlansIncludingGroups(userId, {
+            limit: 1000,
+            includeGroups: true
+        });
+
+        // Calculate statistics
+        const totalPlans = groupPlans.plans.length;
+        const personalPlanCount = personalPlans.plans.length;
+        const groupPlanCount = totalPlans - personalPlanCount;
+
+        const plansByStatus = groupPlans.plans.reduce((acc, plan) => {
+            acc[plan.status] = (acc[plan.status] || 0) + 1;
+            return acc;
+        }, {});
+
+        // Get tasks assigned to user
+        const allTasks = [];
+        groupPlans.plans.forEach(plan => {
+            plan.tasks?.forEach(task => {
+                if (task.assignedTo?.some(a => a.userId.toString() === userId.toString())) {
+                    allTasks.push({
+                        ...task,
+                        planId: plan._id,
+                        planTitle: plan.title
+                    });
+                }
+            });
+        });
+
+        const tasksByStatus = allTasks.reduce((acc, task) => {
+            acc[task.status] = (acc[task.status] || 0) + 1;
+            return acc;
+        }, {});
+
+        // Get overdue tasks
+        const overdueTasks = allTasks.filter(task =>
+            task.dueDate &&
+            new Date(task.dueDate) < new Date() &&
+            task.status !== 'completed'
+        );
+
+        // Get upcoming tasks (due in next 7 days)
+        const nextWeek = new Date();
+        nextWeek.setDate(nextWeek.getDate() + 7);
+
+        const upcomingTasks = allTasks.filter(task =>
+            task.dueDate &&
+            new Date(task.dueDate) <= nextWeek &&
+            new Date(task.dueDate) >= new Date() &&
+            task.status !== 'completed'
+        );
+
+        return reply.code(200).send({
+            success: true,
+            data: {
+                overview: {
+                    totalPlans,
+                    personalPlans: personalPlanCount,
+                    groupPlans: groupPlanCount,
+                    totalTasks: allTasks.length,
+                    overdueTasks: overdueTasks.length,
+                    upcomingTasks: upcomingTasks.length
+                },
+                plansByStatus,
+                tasksByStatus,
+                recentTasks: allTasks
+                    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+                    .slice(0, 10),
+                overdueTasks: overdueTasks.slice(0, 5),
+                upcomingTasks: upcomingTasks
+                    .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+                    .slice(0, 5)
+            },
+            message: 'Lấy dashboard thành công'
+        });
+
+    } catch (error) {
+        console.error('Get user dashboard error:', error);
+        return reply.code(500).send({
+            success: false,
+            message: error.message || 'Lỗi khi lấy dashboard'
         });
     }
 };

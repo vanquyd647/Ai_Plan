@@ -24,10 +24,10 @@ exports.getUserPlans = async (userId, options = {}) => {
             sortBy = 'createdAt',
             sortOrder = 'desc'
         } = options;
-        
+
         // Build query
         const query = { userId };
-        
+
         // Add search filter
         if (search) {
             query.$or = [
@@ -35,16 +35,16 @@ exports.getUserPlans = async (userId, options = {}) => {
                 { description: { $regex: search, $options: 'i' } }
             ];
         }
-        
+
         // Add category filter
         if (category) {
             query.category = category;
         }
-        
+
         // Calculate pagination
         const skip = (page - 1) * limit;
         const sortOptions = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
-        
+
         // Execute query with pagination
         const [plans, totalCount] = await Promise.all([
             Plan.find(query)
@@ -54,7 +54,7 @@ exports.getUserPlans = async (userId, options = {}) => {
                 .lean(),
             Plan.countDocuments(query)
         ]);
-        
+
         return {
             plans,
             pagination: {
@@ -78,12 +78,12 @@ exports.getPlanById = async (planId, userId) => {
         if (!mongoose.Types.ObjectId.isValid(planId)) {
             throw new Error('ID kế hoạch không hợp lệ');
         }
-        
-        const plan = await Plan.findOne({ 
-            _id: planId, 
-            userId 
+
+        const plan = await Plan.findOne({
+            _id: planId,
+            userId
         }).lean();
-        
+
         return plan;
     } catch (error) {
         console.error('Get plan by ID service error:', error);
@@ -97,17 +97,17 @@ exports.updatePlan = async (planId, userId, updateData) => {
         if (!mongoose.Types.ObjectId.isValid(planId)) {
             throw new Error('ID kế hoạch không hợp lệ');
         }
-        
+
         // Remove fields that shouldn't be updated
         const { userId: _, createdAt, __v, ...cleanUpdateData } = updateData;
         cleanUpdateData.updatedAt = new Date();
-        
+
         const updatedPlan = await Plan.findOneAndUpdate(
             { _id: planId, userId },
             cleanUpdateData,
             { new: true, runValidators: true }
         );
-        
+
         return updatedPlan;
     } catch (error) {
         console.error('Update plan service error:', error);
@@ -121,12 +121,12 @@ exports.deletePlan = async (planId, userId) => {
         if (!mongoose.Types.ObjectId.isValid(planId)) {
             throw new Error('ID kế hoạch không hợp lệ');
         }
-        
-        const deletedPlan = await Plan.findOneAndDelete({ 
-            _id: planId, 
-            userId 
+
+        const deletedPlan = await Plan.findOneAndDelete({
+            _id: planId,
+            userId
         });
-        
+
         return !!deletedPlan;
     } catch (error) {
         console.error('Delete plan service error:', error);
@@ -161,7 +161,7 @@ exports.getUserPlanStats = async (userId) => {
                 }
             }
         ]);
-        
+
         const result = stats[0] || {
             totalPlans: 0,
             completedPlans: 0,
@@ -170,12 +170,12 @@ exports.getUserPlanStats = async (userId) => {
             aiGeneratedPlans: 0,
             manualPlans: 0
         };
-        
+
         // Calculate completion rate
-        result.completionRate = result.totalPlans > 0 
-            ? Math.round((result.completedPlans / result.totalPlans) * 100) 
+        result.completionRate = result.totalPlans > 0
+            ? Math.round((result.completedPlans / result.totalPlans) * 100)
             : 0;
-        
+
         return result;
     } catch (error) {
         console.error('Get user plan stats service error:', error);
@@ -186,15 +186,15 @@ exports.getUserPlanStats = async (userId) => {
 // ✅ Duplicate plan
 exports.duplicatePlan = async (planId, userId, newTitle) => {
     try {
-        const originalPlan = await Plan.findOne({ 
-            _id: planId, 
-            userId 
+        const originalPlan = await Plan.findOne({
+            _id: planId,
+            userId
         }).lean();
-        
+
         if (!originalPlan) {
             return null;
         }
-        
+
         // Create new plan data
         const { _id, createdAt, updatedAt, __v, ...planData } = originalPlan;
         const duplicatedPlanData = {
@@ -204,7 +204,7 @@ exports.duplicatePlan = async (planId, userId, newTitle) => {
             createdAt: new Date(),
             updatedAt: new Date()
         };
-        
+
         const duplicatedPlan = new Plan(duplicatedPlanData);
         return await duplicatedPlan.save();
     } catch (error) {
@@ -217,15 +217,15 @@ exports.duplicatePlan = async (planId, userId, newTitle) => {
 exports.sharePlan = async (planId, userId, shareType, expiresIn) => {
     try {
         const plan = await Plan.findOne({ _id: planId, userId });
-        
+
         if (!plan) {
             return null;
         }
-        
+
         // Generate share token (you might want to use JWT or a random string)
         const crypto = require('crypto');
         const shareToken = crypto.randomBytes(32).toString('hex');
-        
+
         // Calculate expiration date
         const expirationMap = {
             '1h': 1 * 60 * 60 * 1000,
@@ -233,9 +233,9 @@ exports.sharePlan = async (planId, userId, shareType, expiresIn) => {
             '7d': 7 * 24 * 60 * 60 * 1000,
             '30d': 30 * 24 * 60 * 60 * 1000
         };
-        
+
         const expiresAt = new Date(Date.now() + (expirationMap[expiresIn] || expirationMap['7d']));
-        
+
         // Update plan with share info
         plan.shareSettings = {
             isShared: true,
@@ -244,9 +244,9 @@ exports.sharePlan = async (planId, userId, shareType, expiresIn) => {
             expiresAt,
             sharedAt: new Date()
         };
-        
+
         await plan.save();
-        
+
         return {
             shareToken,
             shareUrl: `${process.env.FRONTEND_URL}/shared/plan/${shareToken}`,
@@ -263,24 +263,24 @@ exports.sharePlan = async (planId, userId, shareType, expiresIn) => {
 exports.exportPlan = async (planId, userId, format) => {
     try {
         const plan = await Plan.findOne({ _id: planId, userId }).lean();
-        
+
         if (!plan) {
             return null;
         }
-        
+
         switch (format) {
             case 'json':
                 return plan;
-            
+
             case 'csv':
                 // Convert plan to CSV format
                 const csvData = this.convertPlanToCSV(plan);
                 return csvData;
-            
+
             case 'pdf':
                 // Generate PDF (you would need a PDF library like puppeteer or jsPDF)
                 throw new Error('PDF export chưa được hỗ trợ');
-            
+
             default:
                 return plan;
         }
@@ -301,7 +301,7 @@ exports.convertPlanToCSV = (plan) => {
     csvRows.push(`Created By,"${plan.createdBy}"`);
     csvRows.push(`Created At,"${plan.createdAt}"`);
     csvRows.push(`Updated At,"${plan.updatedAt}"`);
-    
+
     if (plan.tasks && plan.tasks.length > 0) {
         csvRows.push('');
         csvRows.push('Tasks:');
@@ -310,7 +310,7 @@ exports.convertPlanToCSV = (plan) => {
             csvRows.push(`"${task.title}","${task.description || ''}","${task.status}","${task.priority || ''}","${task.dueDate || ''}"`);
         });
     }
-    
+
     return csvRows.join('\n');
 };
 
@@ -322,6 +322,81 @@ exports.getAllPlans = async () => {
         return plans;
     } catch (error) {
         console.error('Get all plans service error:', error);
+        throw new Error('Không thể lấy danh sách kế hoạch: ' + error.message);
+    }
+};
+
+// ✅ Thêm method để tạo plan với groupId
+exports.createPlanWithGroup = async (planData, groupId = null) => {
+    try {
+        const plan = new Plan({
+            ...planData,
+            groupId
+        });
+        const savedPlan = await plan.save();
+        return savedPlan;
+    } catch (error) {
+        console.error('Create plan with group service error:', error);
+        throw new Error('Không thể tạo kế hoạch: ' + error.message);
+    }
+};
+
+// ✅ Cập nhật getUserPlans để bao gồm cả personal và group plans
+exports.getUserPlansIncludingGroups = async (userId, options = {}) => {
+    try {
+        const { page = 1, limit = 10, search, category, status, sortBy = 'createdAt', sortOrder = 'desc', includeGroups = true } = options;
+
+        const query = {
+            $or: [
+                { userId }, // Personal plans
+                ...(includeGroups ? [{ 'collaborators.userId': userId }] : []) // Group plans where user is collaborator
+            ]
+        };
+
+        if (status) {
+            query.status = status;
+        }
+
+        if (category) {
+            query.category = category;
+        }
+
+        if (search) {
+            query.$and = query.$and || [];
+            query.$and.push({
+                $or: [
+                    { title: { $regex: search, $options: 'i' } },
+                    { description: { $regex: search, $options: 'i' } }
+                ]
+            });
+        }
+
+        const skip = (page - 1) * limit;
+        const sortOptions = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
+
+        const plans = await Plan.find(query)
+            .populate('userId', 'name email avatar')
+            .populate('groupId', 'name description')
+            .populate('collaborators.userId', 'name email avatar')
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
+        const total = await Plan.countDocuments(query);
+
+        return {
+            plans,
+            pagination: {
+                page,
+                limit,
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        };
+
+    } catch (error) {
+        console.error('Get user plans including groups error:', error);
         throw new Error('Không thể lấy danh sách kế hoạch: ' + error.message);
     }
 };
