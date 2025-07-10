@@ -10,45 +10,83 @@ const PlanSchema = new mongoose.Schema({
     },
     description: {
         type: String,
-        required: true,
+        trim: true,
+        maxlength: 1000
+    },
+    
+    // ✅ Plan source identification
+    source: {
+        type: String,
+        enum: ['manual', 'ai-generated'],
+        default: 'manual'
+    },
+    
+    // ✅ AI-specific fields
+    aiPrompt: {
+        type: String,
         trim: true
     },
+    aiModel: {
+        type: String,
+        trim: true
+    },
+    aiGeneratedAt: {
+        type: Date
+    },
+    
+    // Basic plan info
     category: {
         type: String,
-        default: 'General'
+        enum: ['personal', 'work', 'education', 'health', 'finance', 'travel', 'other'],
+        default: 'personal'
+    },
+    priority: {
+        type: String,
+        enum: ['low', 'medium', 'high', 'urgent'],
+        default: 'medium'
     },
     status: {
         type: String,
         enum: ['draft', 'active', 'completed', 'archived'],
         default: 'draft'
     },
-    priority: {
-        type: String,
-        enum: ['low', 'medium', 'high'],
-        default: 'medium'
-    },
-    tags: [{
-        type: String,
-        trim: true
-    }],
     
-    // ✅ NEW: Group support
-    groupId: {
+    // Dates
+    startDate: {
+        type: Date
+    },
+    endDate: {
+        type: Date
+    },
+    
+    // User association
+    userId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Group',
-        default: null // null = personal plan
+        ref: 'User',
+        required: true
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     },
     
-    // ✅ ENHANCED: Tasks with assignment support
+    // Tasks array
     tasks: [{
+        id: {
+            type: String,
+            default: () => new mongoose.Types.ObjectId().toString()
+        },
         title: {
             type: String,
             required: true,
-            trim: true
+            trim: true,
+            maxlength: 200
         },
         description: {
             type: String,
-            trim: true
+            trim: true,
+            maxlength: 1000
         },
         status: {
             type: String,
@@ -60,13 +98,36 @@ const PlanSchema = new mongoose.Schema({
             enum: ['low', 'medium', 'high', 'urgent'],
             default: 'medium'
         },
+        dueDate: {
+            type: Date
+        },
+        estimatedTime: {
+            type: Number,
+            min: 0
+        },
+        actualTime: {
+            type: Number,
+            min: 0
+        },
+        tags: [{
+            type: String,
+            trim: true
+        }],
         
-        // ✅ NEW: Task assignments
+        // Task assignment
         assignedTo: [{
             userId: {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: 'User',
-                required: true
+                ref: 'User'
+            },
+            user: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User'
+            },
+            role: {
+                type: String,
+                enum: ['owner', 'collaborator', 'reviewer'],
+                default: 'collaborator'
             },
             assignedAt: {
                 type: Date,
@@ -76,58 +137,49 @@ const PlanSchema = new mongoose.Schema({
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'User'
             },
-            role: {
-                type: String,
-                enum: ['owner', 'collaborator', 'reviewer'],
-                default: 'collaborator'
-            }
-        }],
-        
-        // ✅ NEW: Task timeline
-        startDate: Date,
-        dueDate: Date,
-        estimatedHours: Number,
-        actualHours: Number,
-        
-        // ✅ NEW: Task dependencies
-        dependencies: [{
-            taskId: {
-                type: mongoose.Schema.Types.ObjectId
-            },
-            type: {
-                type: String,
-                enum: ['finish-to-start', 'start-to-start', 'finish-to-finish'],
-                default: 'finish-to-start'
-            }
-        }],
-        
-        // ✅ NEW: Task comments
-        comments: [{
-            userId: {
+            assignedByUser: {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: 'User',
-                required: true
+                ref: 'User'
+            }
+        }],
+        
+        // Task comments
+        comments: [{
+            id: {
+                type: String,
+                default: () => new mongoose.Types.ObjectId().toString()
             },
             content: {
                 type: String,
+                required: true,
+                trim: true,
+                maxlength: 1000
+            },
+            author: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
                 required: true
             },
             createdAt: {
                 type: Date,
                 default: Date.now
             },
-            type: {
-                type: String,
-                enum: ['comment', 'status-update', 'assignment'],
-                default: 'comment'
+            updatedAt: {
+                type: Date,
+                default: Date.now
+            },
+            isEdited: {
+                type: Boolean,
+                default: false
             }
         }],
         
-        // ✅ NEW: File attachments
+        // Task attachments
         attachments: [{
             fileName: String,
             fileUrl: String,
             fileSize: Number,
+            fileType: String,
             uploadedBy: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'User'
@@ -148,25 +200,26 @@ const PlanSchema = new mongoose.Schema({
         }
     }],
     
-    // ✅ NEW: Plan collaborators
+    // Collaborators
     collaborators: [{
         userId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
             required: true
         },
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        },
         role: {
             type: String,
-            enum: ['owner', 'editor', 'viewer', 'reviewer'],
+            enum: ['owner', 'editor', 'viewer'],
             default: 'viewer'
         },
-        permissions: {
-            canEdit: { type: Boolean, default: false },
-            canAssignTasks: { type: Boolean, default: false },
-            canDeleteTasks: { type: Boolean, default: false },
-            canInviteOthers: { type: Boolean, default: false },
-            canViewReports: { type: Boolean, default: true }
-        },
+        permissions: [{
+            type: String,
+            enum: ['view', 'edit', 'delete', 'share', 'manage_tasks', 'manage_collaborators']
+        }],
         addedAt: {
             type: Date,
             default: Date.now
@@ -177,71 +230,157 @@ const PlanSchema = new mongoose.Schema({
         }
     }],
     
-    // ✅ NEW: Progress tracking
-    progress: {
-        totalTasks: { type: Number, default: 0 },
-        completedTasks: { type: Number, default: 0 },
-        inProgressTasks: { type: Number, default: 0 },
-        overdueTasks: { type: Number, default: 0 },
-        percentComplete: { type: Number, default: 0 }
+    // Plan settings
+    isPublic: {
+        type: Boolean,
+        default: false
+    },
+    allowComments: {
+        type: Boolean,
+        default: true
+    },
+    allowCollaboration: {
+        type: Boolean,
+        default: true
     },
     
-    // Existing fields
-    steps: [{
-        description: String,
-        timeline: String,
-        resources: String
-    }],
-    risks: [{
-        risk: String,
-        mitigation: String
-    }],
-    
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    createdBy: {
+    // Tags and metadata
+    tags: [{
         type: String,
-        default: 'user'
+        trim: true
+    }],
+    
+    // Sharing
+    shareSettings: {
+        isShared: {
+            type: Boolean,
+            default: false
+        },
+        shareToken: {
+            type: String
+        },
+        shareType: {
+            type: String,
+            enum: ['view', 'edit'],
+            default: 'view'
+        },
+        expiresAt: {
+            type: Date
+        }
     },
-    aiMetadata: {
-        model: String,
-        prompt: String,
-        generatedAt: Date,
-        confidence: Number
+    
+    // Progress tracking
+    progress: {
+        totalTasks: {
+            type: Number,
+            default: 0
+        },
+        completedTasks: {
+            type: Number,
+            default: 0
+        },
+        percentage: {
+            type: Number,
+            default: 0,
+            min: 0,
+            max: 100
+        }
+    },
+    
+    // Timestamps
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now
     }
 }, {
     timestamps: true
 });
 
-// ✅ Indexes for performance
-PlanSchema.index({ userId: 1, status: 1 });
-PlanSchema.index({ groupId: 1, status: 1 });
-PlanSchema.index({ 'tasks.assignedTo.userId': 1 });
-PlanSchema.index({ 'collaborators.userId': 1 });
-PlanSchema.index({ 'tasks.dueDate': 1, 'tasks.status': 1 });
+// ✅ Indexes for better performance
+PlanSchema.index({ userId: 1, createdAt: -1 });
+PlanSchema.index({ status: 1 });
+PlanSchema.index({ category: 1 });
+PlanSchema.index({ priority: 1 });
+PlanSchema.index({ source: 1 });
+PlanSchema.index({ 'shareSettings.shareToken': 1 });
+PlanSchema.index({ tags: 1 });
+
+// ✅ Virtual for task statistics
+PlanSchema.virtual('taskStats').get(function() {
+    const total = this.tasks.length;
+    const completed = this.tasks.filter(task => task.status === 'completed').length;
+    const inProgress = this.tasks.filter(task => task.status === 'in-progress').length;
+    const todo = this.tasks.filter(task => task.status === 'todo').length;
+    
+    return {
+        total,
+        completed,
+        inProgress,
+        todo,
+        percentage: total > 0 ? Math.round((completed / total) * 100) : 0
+    };
+});
 
 // ✅ Pre-save middleware to update progress
 PlanSchema.pre('save', function(next) {
     if (this.tasks && this.tasks.length > 0) {
         const totalTasks = this.tasks.length;
-        const completedTasks = this.tasks.filter(t => t.status === 'completed').length;
-        const inProgressTasks = this.tasks.filter(t => t.status === 'in-progress').length;
-        const overdueTasks = this.tasks.filter(t => 
-            t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'completed'
-        ).length;
+        const completedTasks = this.tasks.filter(task => task.status === 'completed').length;
+        const percentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
         
         this.progress = {
             totalTasks,
             completedTasks,
-            inProgressTasks,
-            overdueTasks,
-            percentComplete: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+            percentage
         };
     }
+    
+    this.updatedAt = new Date();
     next();
 });
+
+// ✅ Methods
+PlanSchema.methods.addTask = function(taskData) {
+    const newTask = {
+        ...taskData,
+        id: new mongoose.Types.ObjectId().toString(),
+        createdAt: new Date(),
+        updatedAt: new Date()
+    };
+    this.tasks.push(newTask);
+    return this.save();
+};
+
+PlanSchema.methods.updateTask = function(taskId, updateData) {
+    const task = this.tasks.id(taskId);
+    if (task) {
+        Object.assign(task, updateData);
+        task.updatedAt = new Date();
+        return this.save();
+    }
+    return null;
+};
+
+PlanSchema.methods.deleteTask = function(taskId) {
+    this.tasks.pull({ _id: taskId });
+    return this.save();
+};
+
+PlanSchema.methods.addCollaborator = function(collaboratorData) {
+    // Check if user is already a collaborator
+    const existingCollaborator = this.collaborators.find(
+        collab => collab.userId.toString() === collaboratorData.userId.toString()
+    );
+    
+    if (!existingCollaborator) {
+        this.collaborators.push(collaboratorData);
+        return this.save();
+    }
+    return null;
+};
 
 module.exports = mongoose.model('Plan', PlanSchema);

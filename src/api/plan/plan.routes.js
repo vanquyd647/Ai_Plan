@@ -7,68 +7,12 @@ async function planRoutes(fastify, options) {
     // ✅ Apply authentication middleware to all routes
     fastify.addHook('preHandler', authenticate);
 
+    // ==================== BASIC PLAN CRUD ====================
+    
     // Get all plans (user's plans only)
     fastify.get('/', {
         schema: PlanSchema.getPlans,
         handler: PlanController.getPlans
-    });
-
-    // ✅ FIXED: Sử dụng handler hiện có thay vì getAllPlans
-    fastify.get('/all', {
-        schema: {
-            description: 'Lấy tất cả kế hoạch của user (bao gồm cả group plans)',
-            tags: ['Plans'],
-            security: [{ bearerAuth: [] }],
-            querystring: {
-                type: 'object',
-                properties: {
-                    page: { type: 'integer', minimum: 1, default: 1 },
-                    limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
-                    search: { type: 'string' },
-                    category: { type: 'string' },
-                    status: { 
-                        type: 'string', 
-                        enum: ['draft', 'active', 'completed', 'archived'] 
-                    },
-                    priority: { 
-                        type: 'string', 
-                        enum: ['low', 'medium', 'high'] 
-                    },
-                    groupId: { type: 'string' },
-                    includeGroups: { 
-                        type: 'string', 
-                        enum: ['true', 'false'], 
-                        default: 'true' 
-                    },
-                    sortBy: {
-                        type: 'string',
-                        enum: ['createdAt', 'updatedAt', 'title', 'status', 'priority'],
-                        default: 'createdAt'
-                    },
-                    sortOrder: {
-                        type: 'string',
-                        enum: ['asc', 'desc'],
-                        default: 'desc'
-                    }
-                }
-            },
-            response: {
-                200: {
-                    type: 'object',
-                    properties: {
-                        success: { type: 'boolean' },
-                        message: { type: 'string' },
-                        data: {
-                            type: 'array',
-                            items: PlanSchema.planObject
-                        },
-                        pagination: PlanSchema.paginationObject
-                    }
-                },
-                500: PlanSchema.errorResponse
-            }
-        },
-        handler: PlanController.getPlans // ✅ Sử dụng handler hiện có
     });
 
     // Get specific plan by ID
@@ -77,16 +21,10 @@ async function planRoutes(fastify, options) {
         handler: PlanController.getPlanById
     });
 
-    // Create plan manually
+    // ✅ UNIFIED: Create plan (both manual and AI-generated)
     fastify.post('/', {
         schema: PlanSchema.createPlan,
         handler: PlanController.createPlan
-    });
-
-    // Save AI generated plan
-    fastify.post('/save-ai-plan', {
-        schema: PlanSchema.saveAIGeneratedPlan,
-        handler: PlanController.saveAIGeneratedPlan
     });
 
     // Update existing plan
@@ -100,6 +38,8 @@ async function planRoutes(fastify, options) {
         schema: PlanSchema.deletePlan,
         handler: PlanController.deletePlan
     });
+
+    // ==================== PLAN MANAGEMENT ====================
 
     // Get user's plan statistics
     fastify.get('/stats/overview', {
@@ -125,133 +65,259 @@ async function planRoutes(fastify, options) {
         handler: PlanController.exportPlan
     });
 
-    // ✅ NEW ROUTES: Task Management (chỉ thêm khi có handler)
-    
+    // Get plans with groups support
+    fastify.get('/groups/all', {
+        schema: PlanSchema.getPlansWithGroups,
+        handler: PlanController.getPlansWithGroups
+    });
+
+    // ==================== TASK MANAGEMENT ====================
+
     // Add task to plan
     fastify.post('/:planId/tasks', {
         schema: PlanSchema.addTaskToPlan,
-        handler: async (request, reply) => {
-            // ✅ Temporary handler - sẽ implement sau
-            return reply.code(501).send({
-                success: false,
-                message: 'Task management feature coming soon'
-            });
-        }
+        handler: PlanController.addTaskToPlan
     });
 
     // Update task in plan
     fastify.put('/:planId/tasks/:taskId', {
         schema: PlanSchema.updateTaskInPlan,
-        handler: async (request, reply) => {
-            return reply.code(501).send({
-                success: false,
-                message: 'Task management feature coming soon'
-            });
-        }
+        handler: PlanController.updateTaskInPlan
     });
 
     // Delete task from plan
     fastify.delete('/:planId/tasks/:taskId', {
         schema: PlanSchema.deleteTaskFromPlan,
-        handler: async (request, reply) => {
-            return reply.code(501).send({
-                success: false,
-                message: 'Task management feature coming soon'
-            });
-        }
+        handler: PlanController.deleteTaskFromPlan
     });
 
     // Bulk update tasks
     fastify.put('/:planId/tasks/bulk', {
         schema: PlanSchema.bulkUpdateTasks,
-        handler: async (request, reply) => {
-            return reply.code(501).send({
-                success: false,
-                message: 'Task management feature coming soon'
-            });
-        }
+        handler: PlanController.bulkUpdateTasks
     });
 
-    // ✅ NEW ROUTES: Collaboration Management
-    
+    // Toggle task completion
+    fastify.patch('/:planId/tasks/:taskId/toggle', {
+        schema: PlanSchema.toggleTaskCompletion,
+        handler: PlanController.toggleTaskCompletion
+    });
+
+    // Update task status
+    fastify.patch('/:planId/tasks/:taskId/status', {
+        schema: PlanSchema.updateTaskStatus,
+        handler: PlanController.updateTaskStatus
+    });
+
+    // ==================== COLLABORATION ====================
+
     // Add collaborator to plan
     fastify.post('/:planId/collaborators', {
         schema: PlanSchema.addCollaboratorToPlan,
-        handler: async (request, reply) => {
-            return reply.code(501).send({
-                success: false,
-                message: 'Collaboration feature coming soon'
-            });
-        }
+        handler: PlanController.addCollaboratorToPlan
     });
 
     // Remove collaborator from plan
     fastify.delete('/:planId/collaborators/:userId', {
         schema: PlanSchema.removeCollaboratorFromPlan,
-        handler: async (request, reply) => {
-            return reply.code(501).send({
-                success: false,
-                message: 'Collaboration feature coming soon'
-            });
-        }
+        handler: PlanController.removeCollaboratorFromPlan
     });
 
     // Update collaborator permissions
     fastify.put('/:planId/collaborators/:userId', {
         schema: PlanSchema.updateCollaboratorPermissions,
-        handler: async (request, reply) => {
-            return reply.code(501).send({
-                success: false,
-                message: 'Collaboration feature coming soon'
-            });
-        }
+        handler: PlanController.updateCollaboratorPermissions
     });
 
-    // ✅ NEW ROUTES: Task Assignment
-    
+    // ==================== ASSIGNMENT & COMMENTS ====================
+
     // Assign task to users
     fastify.post('/:planId/tasks/:taskId/assign', {
         schema: PlanSchema.assignTask,
-        handler: async (request, reply) => {
-            return reply.code(501).send({
-                success: false,
-                message: 'Task assignment feature coming soon'
-            });
-        }
+        handler: PlanController.assignTask
     });
 
     // Add comment to task
     fastify.post('/:planId/tasks/:taskId/comments', {
         schema: PlanSchema.addCommentToTask,
-        handler: async (request, reply) => {
-            return reply.code(501).send({
-                success: false,
-                message: 'Task comments feature coming soon'
-            });
-        }
+        handler: PlanController.addCommentToTask
     });
 
-    // ✅ NEW ROUTES: User Dashboard & My Tasks
-    
+    // ==================== DASHBOARD & MY TASKS ====================
+
     // Get user dashboard
-    fastify.get('/dashboard', {
+    fastify.get('/dashboard/overview', {
         schema: PlanSchema.getUserDashboard,
-        handler: async (request, reply) => {
-            return reply.code(501).send({
-                success: false,
-                message: 'Dashboard feature coming soon'
-            });
-        }
+        handler: PlanController.getUserDashboard
     });
 
     // Get my assigned tasks
-    fastify.get('/my-tasks', {
+    fastify.get('/tasks/assigned', {
         schema: PlanSchema.getMyTasks,
-        handler: async (request, reply) => {
-            return reply.code(501).send({
-                success: false,
-                message: 'My tasks feature coming soon'
-            });
+        handler: PlanController.getMyTasks
+    });
+
+    // ==================== ADDITIONAL ROUTES ====================
+
+    // Get plans by category
+    fastify.get('/category/:category', {
+        schema: PlanSchema.getPlansByCategory,
+        handler: async (req, reply) => {
+            const { category } = req.params;
+            req.query.category = category;
+            return PlanController.getPlans(req, reply);
+        }
+    });
+
+    // Get plans by status
+    fastify.get('/status/:status', {
+        schema: PlanSchema.getPlansByStatus,
+        handler: async (req, reply) => {
+            const { status } = req.params;
+            req.query.status = status;
+            return PlanController.getPlans(req, reply);
+        }
+    });
+
+    // Get plans by priority
+    fastify.get('/priority/:priority', {
+        schema: PlanSchema.getPlansByPriority,
+        handler: async (req, reply) => {
+            const { priority } = req.params;
+            req.query.priority = priority;
+            return PlanController.getPlans(req, reply);
+        }
+    });
+
+    // Get AI-generated plans
+    fastify.get('/source/ai-generated', {
+        schema: PlanSchema.getAIGeneratedPlans,
+        handler: async (req, reply) => {
+            req.query.source = 'ai-generated';
+            return PlanController.getPlans(req, reply);
+        }
+    });
+
+    // Get manual plans
+    fastify.get('/source/manual', {
+        schema: PlanSchema.getManualPlans,
+        handler: async (req, reply) => {
+            req.query.source = 'manual';
+            return PlanController.getPlans(req, reply);
+        }
+    });
+
+    // Search plans
+    fastify.get('/search/:query', {
+        schema: PlanSchema.searchPlans,
+        handler: async (req, reply) => {
+            const { query } = req.params;
+            req.query.search = query;
+            return PlanController.getPlans(req, reply);
+        }
+    });
+
+    // Get recent plans
+    fastify.get('/recent/all', {
+        schema: PlanSchema.getRecentPlans,
+        handler: async (req, reply) => {
+            req.query.sortBy = 'updatedAt';
+            req.query.sortOrder = 'desc';
+            req.query.limit = req.query.limit || 10;
+            return PlanController.getPlans(req, reply);
+        }
+    });
+
+    // Get archived plans
+    fastify.get('/archived/all', {
+        schema: PlanSchema.getArchivedPlans,
+        handler: async (req, reply) => {
+            req.query.status = 'archived';
+            return PlanController.getPlans(req, reply);
+        }
+    });
+
+    // Archive plan
+    fastify.patch('/:id/archive', {
+        schema: PlanSchema.archivePlan,
+        handler: async (req, reply) => {
+            req.body = { status: 'archived' };
+            return PlanController.updatePlan(req, reply);
+        }
+    });
+
+    // Restore plan from archive
+    fastify.patch('/:id/restore', {
+        schema: PlanSchema.restorePlan,
+        handler: async (req, reply) => {
+            req.body = { status: 'active' };
+            return PlanController.updatePlan(req, reply);
+        }
+    });
+
+    // Mark plan as completed
+    fastify.patch('/:id/complete', {
+        schema: PlanSchema.completePlan,
+        handler: async (req, reply) => {
+            req.body = { status: 'completed' };
+            return PlanController.updatePlan(req, reply);
+        }
+    });
+
+    // Activate plan
+    fastify.patch('/:id/activate', {
+        schema: PlanSchema.activatePlan,
+        handler: async (req, reply) => {
+            req.body = { status: 'active' };
+            return PlanController.updatePlan(req, reply);
+        }
+    });
+
+    // Get plan progress
+    fastify.get('/:id/progress', {
+        schema: PlanSchema.getPlanProgress,
+        handler: async (req, reply) => {
+            try {
+                const { id } = req.params;
+                const userId = req.user.userId;
+
+                const plan = await require('../plan/plan.service').getPlanById(id, userId);
+                
+                if (!plan) {
+                    return reply.code(404).send({
+                        success: false,
+                        message: 'Không tìm thấy kế hoạch'
+                    });
+                }
+
+                const progress = {
+                    planId: plan._id,
+                    title: plan.title,
+                    totalTasks: plan.tasks.length,
+                    completedTasks: plan.tasks.filter(task => task.status === 'completed').length,
+                    inProgressTasks: plan.tasks.filter(task => task.status === 'in-progress').length,
+                    todoTasks: plan.tasks.filter(task => task.status === 'todo').length,
+                    percentage: plan.tasks.length > 0 
+                        ? Math.round((plan.tasks.filter(task => task.status === 'completed').length / plan.tasks.length) * 100) 
+                        : 0,
+                    status: plan.status,
+                    startDate: plan.startDate,
+                    endDate: plan.endDate,
+                    updatedAt: plan.updatedAt
+                };
+
+                return reply.code(200).send({
+                    success: true,
+                    data: progress,
+                    message: 'Lấy tiến độ kế hoạch thành công'
+                });
+            } catch (error) {
+                console.error('Get plan progress error:', error);
+                return reply.code(500).send({
+                    success: false,
+                    message: error.message || 'Lỗi server khi lấy tiến độ kế hoạch'
+                });
+            }
         }
     });
 }
