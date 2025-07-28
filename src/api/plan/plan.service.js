@@ -1,22 +1,91 @@
 const Plan = require('../../models/Plan');
 const mongoose = require('mongoose');
 
+// ✅ Helper function để transform data
+const transformPlanData = (plan) => {
+    if (!plan) return null;
+
+    // Convert mongoose document to plain object
+    const planObj = plan.toObject ? plan.toObject() : plan;
+
+    // Transform main plan
+    const transformed = {
+        ...planObj,
+        id: planObj._id ? planObj._id.toString() : planObj.id,
+    };
+
+    // Transform tasks to include id
+    if (transformed.tasks && transformed.tasks.length > 0) {
+        transformed.tasks = transformed.tasks.map(task => ({
+            ...task,
+            id: task._id ? task._id.toString() : (task.id || new mongoose.Types.ObjectId().toString())
+        }));
+    }
+
+    // Transform collaborators
+    if (transformed.collaborators && transformed.collaborators.length > 0) {
+        transformed.collaborators = transformed.collaborators.map(collab => ({
+            ...collab,
+            id: collab._id ? collab._id.toString() : collab.id,
+            userId: collab.userId && typeof collab.userId === 'object' ? {
+                ...collab.userId,
+                id: collab.userId._id ? collab.userId._id.toString() : collab.userId.id
+            } : collab.userId
+        }));
+    }
+
+    // Transform user info
+    if (transformed.userId && typeof transformed.userId === 'object') {
+        transformed.userId = {
+            ...transformed.userId,
+            id: transformed.userId._id ? transformed.userId._id.toString() : transformed.userId.id
+        };
+    }
+
+    if (transformed.createdBy && typeof transformed.createdBy === 'object') {
+        transformed.createdBy = {
+            ...transformed.createdBy,
+            id: transformed.createdBy._id ? transformed.createdBy._id.toString() : transformed.createdBy.id
+        };
+    }
+
+    // Clean up MongoDB fields
+    delete transformed._id;
+    delete transformed.__v;
+
+    return transformed;
+};
 // ✅ UNIFIED: Create plan (both manual and AI-generated)
 exports.createPlan = async (planData) => {
     try {
-        // ✅ Handle AI-generated specific fields
+        // Handle AI-generated specific fields
         if (planData.source === 'ai-generated') {
             planData.aiGeneratedAt = planData.aiGeneratedAt || new Date();
+            planData.aiModel = planData.aiModel || 'default';
         }
-        
+
+        // Generate unique IDs for tasks if not provided
+        if (planData.tasks && planData.tasks.length > 0) {
+            planData.tasks = planData.tasks.map(task => ({
+                ...task,
+                id: task.id || new mongoose.Types.ObjectId().toString(),
+                createdAt: new Date(),
+                updatedAt: new Date()
+            }));
+        }
+
+        // Create plan
         const plan = new Plan(planData);
         const savedPlan = await plan.save();
-        
-        // ✅ Populate user info
-        await savedPlan.populate('userId', 'name email avatar');
-        await savedPlan.populate('createdBy', 'name email avatar');
-        
-        return savedPlan;
+
+        // Populate references
+        const populatedPlan = await Plan.findById(savedPlan._id)
+            .populate('userId', 'name email avatar')
+            .populate('createdBy', 'name email avatar')
+            .populate('collaborators.userId', 'name email avatar');
+
+        // ✅ Transform data
+        return transformPlanData(populatedPlan);
     } catch (error) {
         console.error('Create plan service error:', error);
         throw new Error('Không thể tạo kế hoạch: ' + error.message);
@@ -58,10 +127,10 @@ exports.getUserPlans = async (userId, options = {}) => {
             });
         }
 
-        if (category) query.category = category;
-        if (status) query.status = status;
-        if (priority) query.priority = priority;
-        if (source) query.source = source;
+        if (category && category !== '') query.category = category;
+        if (status && status !== '') query.status = status;
+        if (priority && priority !== '') query.priority = priority;
+        if (source && source !== '') query.source = source;
 
         // Build sort object
         const sort = {};
@@ -69,7 +138,7 @@ exports.getUserPlans = async (userId, options = {}) => {
 
         // Execute query with pagination
         const skip = (page - 1) * limit;
-        
+
         const [plans, total] = await Promise.all([
             Plan.find(query)
                 .populate('userId', 'name email avatar')
@@ -77,13 +146,15 @@ exports.getUserPlans = async (userId, options = {}) => {
                 .populate('collaborators.userId', 'name email avatar')
                 .sort(sort)
                 .skip(skip)
-                .limit(limit)
-                .lean(),
+                .limit(limit),
             Plan.countDocuments(query)
         ]);
 
+        // ✅ Transform all plans
+        const transformedPlans = plans.map(plan => transformPlanData(plan));
+
         return {
-            plans,
+            plans: transformedPlans,
             pagination: {
                 currentPage: page,
                 totalPages: Math.ceil(total / limit),
@@ -102,54 +173,73 @@ exports.getUserPlans = async (userId, options = {}) => {
 // ✅ Get plan by ID
 exports.getPlanById = async (planId, userId) => {
     try {
+        // Validate inputs
+        if (!mongoose.Types.ObjectId.isValid(planId) || planId === 'undefined' || planId === 'null') {
+            throw new Error('ID kế hoạch không hợp lệ');
+        }
+
         const plan = await Plan.findOne({
             _id: planId,
             $or: [
                 { userId: userId },
-                { 'collaborators.userId': userId }
+                { 'collaborators.userId': userId },
+                { isPublic: true }
             ]
-        })
-        .populate('userId', 'name email avatar')
-        .populate('createdBy', 'name email avatar')
-        .populate('collaborators.userId', 'name email avatar')
-        .populate('tasks.assignedTo.userId', 'name email avatar')
-        .populate('tasks.comments.author', 'name email avatar');
+        }).populate('userId', 'name email avatar')
+            .populate('createdBy', 'name email avatar')
+            .populate('collaborators.userId', 'name email avatar');
 
-        return plan;
+        if (!plan) {
+            throw new Error('Không tìm thấy kế hoạch hoặc bạn không có quyền truy cập');
+        }
+
+        // ✅ Transform data để có id
+        return transformPlanData(plan);
     } catch (error) {
         console.error('Get plan by ID service error:', error);
-        throw new Error('Không thể lấy kế hoạch: ' + error.message);
+        throw new Error('Không thể lấy thông tin kế hoạch: ' + error.message);
     }
 };
 
 // ✅ Update plan
 exports.updatePlan = async (planId, userId, updateData) => {
     try {
-        const plan = await Plan.findOneAndUpdate(
-            {
-                _id: planId,
-                $or: [
-                    { userId: userId },
-                    { 
-                        'collaborators.userId': userId,
-                        'collaborators.permissions': { $in: ['edit'] }
-                    }
-                ]
-            },
-            { 
-                ...updateData, 
-                updatedAt: new Date() 
-            },
-            { 
-                new: true, 
-                runValidators: true 
-            }
-        )
-        .populate('userId', 'name email avatar')
-        .populate('createdBy', 'name email avatar')
-        .populate('collaborators.userId', 'name email avatar');
+        // Validate inputs
+        if (!mongoose.Types.ObjectId.isValid(planId) || planId === 'undefined' || planId === 'null') {
+            throw new Error('ID kế hoạch không hợp lệ');
+        }
 
-        return plan;
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            throw new Error('ID người dùng không hợp lệ');
+        }
+
+        // Find plan and check permissions
+        const plan = await Plan.findOne({
+            _id: planId,
+            $or: [
+                { userId: userId },
+                { 'collaborators.userId': userId }
+            ]
+        });
+
+        if (!plan) {
+            throw new Error('Không tìm thấy kế hoạch hoặc bạn không có quyền truy cập');
+        }
+
+        // Update plan
+        const updatedPlan = await Plan.findByIdAndUpdate(
+            planId,
+            {
+                ...updateData,
+                updatedAt: new Date()
+            },
+            { new: true, runValidators: true }
+        ).populate('userId', 'name email avatar')
+            .populate('createdBy', 'name email avatar')
+            .populate('collaborators.userId', 'name email avatar');
+
+        // ✅ Transform data
+        return transformPlanData(updatedPlan);
     } catch (error) {
         console.error('Update plan service error:', error);
         throw new Error('Không thể cập nhật kế hoạch: ' + error.message);
@@ -159,12 +249,22 @@ exports.updatePlan = async (planId, userId, updateData) => {
 // ✅ Delete plan
 exports.deletePlan = async (planId, userId) => {
     try {
-        const plan = await Plan.findOneAndDelete({
+        // Validate inputs
+        if (!mongoose.Types.ObjectId.isValid(planId) || planId === 'undefined' || planId === 'null') {
+            throw new Error('ID kế hoạch không hợp lệ');
+        }
+
+        const plan = await Plan.findOne({
             _id: planId,
             userId: userId // Only owner can delete
         });
 
-        return plan;
+        if (!plan) {
+            throw new Error('Không tìm thấy kế hoạch hoặc bạn không có quyền xóa');
+        }
+
+        await Plan.findByIdAndDelete(planId);
+        return { success: true, message: 'Xóa kế hoạch thành công' };
     } catch (error) {
         console.error('Delete plan service error:', error);
         throw new Error('Không thể xóa kế hoạch: ' + error.message);
@@ -233,8 +333,8 @@ exports.getUserPlanStats = async (userId) => {
         };
 
         // Calculate completion percentage
-        result.completionPercentage = result.totalTasks > 0 
-            ? Math.round((result.completedTasks / result.totalTasks) * 100) 
+        result.completionPercentage = result.totalTasks > 0
+            ? Math.round((result.completedTasks / result.totalTasks) * 100)
             : 0;
 
         return result;
@@ -344,9 +444,9 @@ exports.exportPlan = async (planId, userId, format = 'json') => {
                 { 'collaborators.userId': userId }
             ]
         })
-        .populate('userId', 'name email avatar')
-        .populate('createdBy', 'name email avatar')
-        .lean();
+            .populate('userId', 'name email avatar')
+            .populate('createdBy', 'name email avatar')
+            .lean();
 
         if (!plan) {
             return null;
@@ -355,7 +455,7 @@ exports.exportPlan = async (planId, userId, format = 'json') => {
         switch (format) {
             case 'json':
                 return JSON.stringify(plan, null, 2);
-            
+
             case 'csv':
                 // Simple CSV export for tasks
                 const csvHeaders = ['Task Title', 'Description', 'Status', 'Priority', 'Due Date'];
@@ -366,11 +466,11 @@ exports.exportPlan = async (planId, userId, format = 'json') => {
                     task.priority,
                     task.dueDate ? new Date(task.dueDate).toLocaleDateString() : ''
                 ]);
-                
+
                 return [csvHeaders, ...csvRows]
                     .map(row => row.map(field => `"${field}"`).join(','))
                     .join('\n');
-            
+
             default:
                 return JSON.stringify(plan, null, 2);
         }
@@ -387,7 +487,7 @@ exports.addTaskToPlan = async (planId, userId, taskData) => {
             _id: planId,
             $or: [
                 { userId: userId },
-                { 
+                {
                     'collaborators.userId': userId,
                     'collaborators.permissions': { $in: ['edit', 'manage_tasks'] }
                 }
@@ -422,7 +522,7 @@ exports.updateTaskInPlan = async (planId, taskId, userId, updateData) => {
             _id: planId,
             $or: [
                 { userId: userId },
-                { 
+                {
                     'collaborators.userId': userId,
                     'collaborators.permissions': { $in: ['edit', 'manage_tasks'] }
                 }
@@ -456,7 +556,7 @@ exports.deleteTaskFromPlan = async (planId, taskId, userId) => {
             _id: planId,
             $or: [
                 { userId: userId },
-                { 
+                {
                     'collaborators.userId': userId,
                     'collaborators.permissions': { $in: ['edit', 'manage_tasks'] }
                 }

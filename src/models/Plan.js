@@ -297,7 +297,26 @@ const PlanSchema = new mongoose.Schema({
         default: Date.now
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    
+    toJSON: { 
+        virtuals: true,
+        transform: function(doc, ret) {
+            ret.id = ret._id.toString();
+            delete ret._id;
+            delete ret.__v;
+            return ret;
+        }
+    },
+    toObject: { 
+        virtuals: true,
+        transform: function(doc, ret) {
+            ret.id = ret._id.toString();
+            delete ret._id;
+            delete ret.__v;
+            return ret;
+        }
+    }
 });
 
 // ✅ Indexes for better performance
@@ -382,5 +401,23 @@ PlanSchema.methods.addCollaborator = function(collaboratorData) {
     }
     return null;
 };
+
+// ✅ Thêm virtual field cho id
+PlanSchema.virtual('id').get(function() {
+    return this._id.toHexString();
+});
+
+// ✅ Transform tasks để có id
+PlanSchema.pre('save', function(next) {
+    if (this.tasks && this.tasks.length > 0) {
+        this.tasks = this.tasks.map(task => {
+            if (!task.id && task._id) {
+                task.id = task._id.toString();
+            }
+            return task;
+        });
+    }
+    next();
+});
 
 module.exports = mongoose.model('Plan', PlanSchema);
