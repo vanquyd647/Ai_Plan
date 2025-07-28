@@ -436,37 +436,54 @@ const createPlan = {
 
 // ✅ Get Plans Schema
 const getPlans = {
-    description: 'Lấy danh sách kế hoạch của người dùng',
-    tags: ['Plans'],
-    security: [{ bearerAuth: [] }],
     querystring: {
         type: 'object',
         properties: {
-            page: { type: 'number', minimum: 1, default: 1 },
-            limit: { type: 'number', minimum: 1, maximum: 100, default: 10 },
-            search: { type: 'string', description: 'Tìm kiếm theo tiêu đề, mô tả, tags' },
-            category: {
-                type: 'string',
-                enum: ['personal', 'work', 'education', 'health', 'finance', 'travel', 'other']
+            page: { 
+                type: 'integer', 
+                minimum: 1, 
+                default: 1 
             },
-            status: {
-                type: 'string',
-                enum: ['draft', 'active', 'completed', 'archived']
+            limit: { 
+                type: 'integer', 
+                minimum: 1, 
+                maximum: 100, 
+                default: 10 
             },
-            priority: {
+            search: { 
                 type: 'string',
-                enum: ['low', 'medium', 'high', 'urgent']
+                default: ''
             },
-            source: {
+            // ✅ FIX: Allow empty string for category
+            category: { 
                 type: 'string',
-                enum: ['manual', 'ai-generated']
+                enum: ['', 'personal', 'work', 'education', 'health', 'finance', 'travel', 'other'],
+                default: ''
             },
-            sortBy: {
+            // ✅ FIX: Allow empty string for status
+            status: { 
                 type: 'string',
-                enum: ['createdAt', 'updatedAt', 'title', 'priority', 'status'],
-                default: 'createdAt'
+                enum: ['', 'draft', 'active', 'completed', 'archived', 'paused'],
+                default: ''
             },
-            sortOrder: {
+            // ✅ FIX: Allow empty string for priority
+            priority: { 
+                type: 'string',
+                enum: ['', 'low', 'medium', 'high', 'urgent'],
+                default: ''
+            },
+            // ✅ FIX: Allow empty string for source
+            source: { 
+                type: 'string',
+                enum: ['', 'manual', 'ai-generated'],
+                default: ''
+            },
+            sortBy: { 
+                type: 'string',
+                enum: ['title', 'createdAt', 'updatedAt', 'priority', 'status'],
+                default: 'updatedAt'
+            },
+            sortOrder: { 
                 type: 'string',
                 enum: ['asc', 'desc'],
                 default: 'desc'
@@ -483,9 +500,21 @@ const getPlans = {
                     type: 'array',
                     items: planObject
                 },
-                pagination: paginationObject
+                pagination: {
+                    type: 'object',
+                    properties: {
+                        currentPage: { type: 'integer' },
+                        totalPages: { type: 'integer' },
+                        totalItems: { type: 'integer' },
+                        itemsPerPage: { type: 'integer' },
+                        hasNext: { type: 'boolean' },
+                        hasPrev: { type: 'boolean' }
+                    }
+                }
             }
         },
+        400: errorResponse,
+        401: errorResponse,
         500: errorResponse
     }
 };
